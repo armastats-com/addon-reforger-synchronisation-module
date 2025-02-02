@@ -1,6 +1,8 @@
 <div align="center">
+
 [![Arma Reforger Workshop](https://img.shields.io/badge/Workshop-647C62912FCE9459-blue?style=flat-square)](https://reforger.armaplatform.com/workshop/647C62912FCE9459)
 [![License MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](https://opensource.org/licenses/MIT)
+
 </div>
 
 # ArmaStats.com - Reforger Synchronisation Addon
