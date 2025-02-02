@@ -12,7 +12,7 @@ class AS_StatisticsSynchronisationService
 	bool m_bInitSuccessfully = false;
 	bool m_bConnectedSuccessfully = false;
 	
-	ref RestCallbackSendPing m_callbackExample;
+	ref AS_RestCallbackSendPing m_xRestCallbackSendPing;
 	ref AS_RestCallbackSendKillPacket m_xRestCallbackSendKillPacket;
 	
 	
@@ -112,12 +112,12 @@ class AS_StatisticsSynchronisationService
 	void SendPing()
 	{
 		// If callback is not set already: Create a new one
-		if (!m_callbackExample) {
-			m_callbackExample = new RestCallbackSendPing();
+		if (!m_xRestCallbackSendPing) {
+			m_xRestCallbackSendPing = new AS_RestCallbackSendPing();
 		}
 		
 		// Referencing SyncService in order to access service function
-		m_callbackExample.SetSyncService(this);
+		m_xRestCallbackSendPing.SetSyncService(this);
 		
 		// 
 		AS_PingPacket packet = new AS_PingPacket();
@@ -131,7 +131,7 @@ class AS_StatisticsSynchronisationService
 		// Sending Call
 		RestContext ctx = GetGame().GetRestApi().GetContext(m_sApi);
 		ctx.SetHeaders("Content-Type,application/json");
-		ctx.POST(m_callbackExample, "v1/reforger-receiver/ping", packetAsString);
+		ctx.POST(m_xRestCallbackSendPing, "v1/reforger-receiver/ping", packetAsString);
 	}
 	
 	//------------------------------------------------------------------------------------------------

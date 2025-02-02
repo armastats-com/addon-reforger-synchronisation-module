@@ -1,11 +1,15 @@
 modded class SCR_BaseGameMode : SCR_BaseGameMode
 {
-	// Map zur Speicherung der Kills und Tode pro Spieler
-	private ref map<string, int> m_Kills;
-	private ref map<string, int> m_Deaths;
+	//	
+	private ref AS_StatisticsSynchronisationService m_xStatisticsSynchronisationService;
+	private ref AS_PlayerDataCollectorSynchronisationService m_xPlayerDataCollectorSynchronisationService;
 	
-	private ref AS_StatisticsSynchronisationService m_StatisticsSynchronisationService;
-
+	//
+	private BackendApi m_xBackendApi;
+	private PlayerManager m_xPlayerManager;
+	
+	//
+	private string m_sSessionId;
 
 	//
 	protected ref ScriptInvokerBase<SCR_BaseGameMode_OnControllableDestroyed> m_OnControllableDestroyed = new ScriptInvokerBase<SCR_BaseGameMode_OnControllableDestroyed>();
@@ -14,22 +18,48 @@ modded class SCR_BaseGameMode : SCR_BaseGameMode
 	//! OnGameStart Event
 	override void OnGameStart()
 	{
+		// Only override logic in case we got a dedicated machine and we are not running in workbench
+		#ifndef WORKBENCH
+		if (!System.IsConsoleApp()) {
+			return;
+		}
+		#endif
+		
 		//
 		super.OnGameStart();
 		
+		//
+		m_sSessionId = AS_RandomStringGenerator.GenerateRandomString(128);
+		
 		// Get an Instance of the Synchronisation Service
-		m_StatisticsSynchronisationService = AS_StatisticsSynchronisationService.GetInstance();
-		m_StatisticsSynchronisationService.PerformInitializationCheck();
+		m_xStatisticsSynchronisationService = AS_StatisticsSynchronisationService.GetInstance();
+		m_xStatisticsSynchronisationService.PerformInitializationCheck();
+		
+		//
+		m_xPlayerDataCollectorSynchronisationService = AS_PlayerDataCollectorSynchronisationService.GetInstance();
+		m_xPlayerDataCollectorSynchronisationService.StartCronjob();
+		
+		//
+		m_xBackendApi = GetGame().GetBackendApi();
+		m_xPlayerManager = GetGame().GetPlayerManager();
 	}
 
 	override void OnControllableDestroyed(IEntity entity, IEntity killerEntity, notnull Instigator instigator)
 	{
+		// Only override logic in case we got a dedicated machine and we are not running in workbench
+		#ifndef WORKBENCH
+		if (!System.IsConsoleApp()) {
+			return;
+		}
+		#endif
+		
 		super.OnControllableDestroyed(entity, killerEntity, instigator);
 		
 		//~ 
-		BackendApi backendApi = GetGame().GetBackendApi();
-		PlayerManager playerManager = GetGame().GetPlayerManager();
-		FactionManager factionManager = GetGame().GetFactionManager();	
+		//BackendApi backendApi = GetGame().GetBackendApi();
+		//PlayerManager playerManager = GetGame().GetPlayerManager();
+		//FactionManager factionManager = GetGame().GetFactionManager();	
+		
 
 		//~ Create instigator context data to determine what the relation is between victim and killer and control types of the victim and killer
 		SCR_InstigatorContextData instigatorContextData = new SCR_InstigatorContextData(-1, entity, killerEntity, instigator);
@@ -61,8 +91,8 @@ modded class SCR_BaseGameMode : SCR_BaseGameMode
 		
 		// Extract all victim related data
 		int victimPlayerId = instigatorContextData.GetVictimPlayerID();
-		string victimPlayerIdentityId = backendApi.GetPlayerIdentityId(victimPlayerId);
-		string victimPlayerName = playerManager.GetPlayerNameByIdentity(victimPlayerIdentityId);
+		string victimPlayerIdentityId = m_xBackendApi.GetPlayerIdentityId(victimPlayerId);
+		string victimPlayerName = m_xPlayerManager.GetPlayerNameByIdentity(victimPlayerIdentityId);
 		string victimKillerRelation = typename.EnumToString(SCR_ECharacterDeathStatusRelations, instigatorContextData.GetVictimKillerRelation());
 		string victimCharacterControlType = typename.EnumToString(SCR_ECharacterControlType, instigatorContextData.GetVictimCharacterControlType());
 		Faction victimFaction = GetFaction(entity, victimPlayerId);
@@ -77,8 +107,8 @@ modded class SCR_BaseGameMode : SCR_BaseGameMode
 		
 		// Extract all killer related data
 		int killerPlayerId = instigatorContextData.GetKillerPlayerID();
-		string killerPlayerIdentityId = backendApi.GetPlayerIdentityId(killerPlayerId);
-		string killerPlayerName = playerManager.GetPlayerNameByIdentity(killerPlayerIdentityId);
+		string killerPlayerIdentityId = m_xBackendApi.GetPlayerIdentityId(killerPlayerId);
+		string killerPlayerName = m_xPlayerManager.GetPlayerNameByIdentity(killerPlayerIdentityId);
 		string killerCharacterControlType = typename.EnumToString(SCR_ECharacterControlType, instigatorContextData.GetKillerCharacterControlType());
 		Faction killerFaction = GetFaction(killerEntity, killerPlayerId);
 		string killerFactionName = killerFaction.GetFactionName();
@@ -126,7 +156,7 @@ modded class SCR_BaseGameMode : SCR_BaseGameMode
 		Print("distance: " + killElement.m_fDistance.ToString());
 		
 		//
-		m_StatisticsSynchronisationService.SendKill(killElement);
+		m_xStatisticsSynchronisationService.SendKill(killElement);
 	}
 	
 	protected Faction GetFaction(IEntity entity, int playerID)
@@ -150,4 +180,6 @@ modded class SCR_BaseGameMode : SCR_BaseGameMode
 		
 		return SCR_FactionManager.SGetPlayerFaction(playerID);
 	}
+	
+	// GetGame().GetDataCollector().GetPlayerData(playerId);
 }

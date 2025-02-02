@@ -1,4 +1,4 @@
-class RestCallbackSendPing : RestCallback
+class AS_RestCallbackSendPing : RestCallback
 {
 	ref AS_StatisticsSynchronisationService m_xSyncService;
 	
