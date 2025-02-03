@@ -10,7 +10,7 @@ class AS_RestCallbackSendPing : RestCallback
 	//------------------------------------------------------------------------------------------------
 	override void OnError(int errorCode)
 	{
-		Print("[ArmaStats.com] API returned " + errorCode.ToString(), LogLevel.ERROR);
+		AS_LoggerService.Error("Ping failed, API returned: " + errorCode.ToString());
 		// TODO-AS Try again after 30 Seconds
 		// TODO-AS More Details depending on errorCode
 	}
@@ -18,7 +18,7 @@ class AS_RestCallbackSendPing : RestCallback
 	//------------------------------------------------------------------------------------------------
 	override void OnTimeout()
 	{
-		Print("[ArmaStats.com] Timeout while trying to connect to the API", LogLevel.ERROR);
+		AS_LoggerService.Error("Ping failed, Timeout while trying to connect to the API.");
 		// TODO-AS Try again after 30 Seconds
 	}
 
@@ -26,6 +26,6 @@ class AS_RestCallbackSendPing : RestCallback
 	override void OnSuccess(string data, int dataSize)
 	{	
 		m_xSyncService.SetConnectedSuccessfully();
-		Print("[ArmaStats.com] Connected successfully!", LogLevel.NORMAL);
+		AS_LoggerService.Log("Connected successfully!");
 	}
 }
