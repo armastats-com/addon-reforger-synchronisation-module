@@ -1,6 +1,6 @@
 class AS_KillPacket : JsonApiStruct
 {
-	ref array<ref AS_KillElementPacket> kills;
+	ref array<ref AS_KillElementJsonApiStruct> kills;
 	string serverId;
 	string apiKey;
 	
@@ -13,7 +13,7 @@ class AS_KillPacket : JsonApiStruct
 		RegV("apiKey");
 	}
 	
-	void SetKillElements(array<ref AS_KillElementPacket> killElements)
+	void SetKillElements(array<ref AS_KillElementJsonApiStruct> killElements)
 	{
 		kills = killElements;
 	}

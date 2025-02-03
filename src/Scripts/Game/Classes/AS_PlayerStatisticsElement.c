@@ -1,10 +1,12 @@
 class AS_PlayerStatsElement
 {
     string m_sPlayerIdentityId;
+	
+	float m_fGamingTime;
 
     float m_fDistanceWalked;
     float m_fDistanceDriven;
-    float m_fDistanceAsOccupant;
+    float m_fDistanceDrivenAsOccupant;
 
     float m_fShots;
     float m_fGrenadesThrown;
@@ -36,6 +38,11 @@ class AS_PlayerStatsElement
 	{
 	    m_fDistanceWalked = f;
 	}
+	
+	void SetGamingTime(float f)
+	{
+	    m_fGamingTime = f;
+	}
 
 	void SetDistanceDriven(float f)
 	{
@@ -44,7 +51,7 @@ class AS_PlayerStatsElement
 
 	void SetDistanceAsOccupant(float f)
 	{
-	    m_fDistanceAsOccupant = f;
+	    m_fDistanceDrivenAsOccupant = f;
 	}
 
 	void SetShots(float f)
