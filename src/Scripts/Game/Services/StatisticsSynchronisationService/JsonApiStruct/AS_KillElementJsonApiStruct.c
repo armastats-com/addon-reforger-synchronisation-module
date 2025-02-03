@@ -1,4 +1,4 @@
-class AS_KillElementPacket : JsonApiStruct
+class AS_KillElementJsonApiStruct : JsonApiStruct
 {
 	string victimPlayerIdentityId;
 	string victimPlayerName;
@@ -12,7 +12,7 @@ class AS_KillElementPacket : JsonApiStruct
 	string killerWeaponName;
 	float distance;
 	
-	void AS_KillElementPacket()
+	void AS_KillElementJsonApiStruct()
 	{
 		// these variables will be converted to JSON or filled from JSON
 		RegV("victimPlayerIdentityId");

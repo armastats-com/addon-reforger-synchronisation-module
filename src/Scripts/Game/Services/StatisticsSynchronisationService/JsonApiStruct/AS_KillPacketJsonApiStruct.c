@@ -1,30 +1,37 @@
-class AS_KillPacket : JsonApiStruct
+class AS_KillPacketJsonApiStruct : JsonApiStruct
 {
 	ref array<ref AS_KillElementJsonApiStruct> kills;
 	string serverId;
 	string apiKey;
+	string sessionId;
 	
 	
-	void AS_KillPacket()
+	void AS_KillPacketJsonApiStruct()
 	{
 		// these variables will be converted to JSON or filled from JSON
 		RegV("kills");
 		RegV("serverId");
 		RegV("apiKey");
+		RegV("sessionId");
 	}
 	
-	void SetKillElements(array<ref AS_KillElementJsonApiStruct> killElements)
+	void SetKillElements(array<ref AS_KillElementJsonApiStruct> elements)
 	{
-		kills = killElements;
+		kills = elements;
 	}
 	
-	void SetServerId(string serverIdToSet)
+	void SetServerId(string s)
 	{
-	  	serverId = serverIdToSet;
+	  	serverId = s;
 	}
 	
-	void SetApiKey(string apiKeyToSet)
+	void SetApiKey(string s)
 	{
-		apiKey = apiKeyToSet;
+		apiKey = s;
+	}
+	
+	void SetSessionId(string s)
+	{
+		sessionId = s;
 	}
 }

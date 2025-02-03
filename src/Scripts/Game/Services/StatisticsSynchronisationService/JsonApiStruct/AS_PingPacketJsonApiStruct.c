@@ -1,11 +1,10 @@
-class AS_PingPacket : JsonApiStruct
+class AS_PingPacketJsonApiStruct : JsonApiStruct
 {
 	string serverId;
 	string apiKey;
 	
-	void AS_PingPacket()
+	void AS_PingPacketJsonApiStruct()
 	{
-		// these variables will be converted to JSON or filled from JSON
 		RegV("serverId");
 		RegV("apiKey");
 	}
