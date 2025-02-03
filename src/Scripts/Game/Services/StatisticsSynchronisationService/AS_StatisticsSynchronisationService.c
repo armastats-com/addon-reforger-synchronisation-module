@@ -14,6 +14,7 @@ class AS_StatisticsSynchronisationService
 	
 	ref AS_RestCallbackSendPing m_xRestCallbackSendPing;
 	ref AS_RestCallbackSendKillPacket m_xRestCallbackSendKillPacket;
+	ref AS_SendPlayerStatisticsRestCallback m_xSendPlayerStatisticsRestCallback;
 	
 	
 	//------------------------------------------------------------------------------------------------
@@ -45,10 +46,17 @@ class AS_StatisticsSynchronisationService
 			return;
 		}
 		
+		#ifdef WORKBENCH
+		m_sApi = "https://api-reforger.armastats.com/";
+		m_sServerId = "67a0f0130ca5886d8f1306e1";
+		m_sApiKey = "rofldiekatz";
+		m_bInitSuccessfully = true;
+		#endif
+		
 		//
 		if (!System.IsCLIParam("armastats-api"))
 		{
-			Print("[ArmaStats.com] Please add the CLI Parameter \"armastats-api\" to your server start script.", LogLevel.ERROR);
+			AS_LoggerService.Error("Please add the CLI Parameter \"armastats-api\" to your server start script.");
 			return;
 		}
 
@@ -60,7 +68,7 @@ class AS_StatisticsSynchronisationService
 		//
 		if (!System.IsCLIParam("armastats-api-key"))
 		{
-			Print("[ArmaStats.com] Please add the CLI Parameter \"armastats-api-key\" to your server start script.", LogLevel.ERROR);
+			AS_LoggerService.Error("Please add the CLI Parameter \"armastats-api-key\" to your server start script.");
 			return;
 		}
 
@@ -71,25 +79,24 @@ class AS_StatisticsSynchronisationService
 		//
 		if (!System.IsCLIParam("armastats-server-id"))
 		{
-			Print("[ArmaStats.com] Please add the CLI Parameter \"armastats-server-id\" to your server start script.", LogLevel.ERROR);
+			AS_LoggerService.Error("Please add the CLI Parameter \"armastats-server-id\" to your server start script.");
 			return;
 		}
 
 		//
 		System.GetCLIParam("armastats-server-id", m_sServerId);
-		
-		
-		
+				
 		//
-		Print("[ArmaStats.com] Setting Api to " + m_sApi, LogLevel.DEBUG);
-		Print("[ArmaStats.com] Setting Api Key to " + m_sApiKey, LogLevel.DEBUG);
-		Print("[ArmaStats.com] Setting Server Id to " + m_sServerId, LogLevel.DEBUG);
+		AS_LoggerService.Debug("Setting API to " + m_sApi);
+		AS_LoggerService.Debug("Setting API Key to " + m_sApiKey);
+		AS_LoggerService.Debug("Setting Server Id to " + m_sServerId);
 		
 		//
 		m_bInitSuccessfully = true;
 		
-		// 		
-		Print("[ArmaStats.com] Sending ping to API..", LogLevel.NORMAL);
+		//
+  		AS_LoggerService.Log("Sending ping to API..");
+		
 		SendPing();
 	}
 	
@@ -120,23 +127,24 @@ class AS_StatisticsSynchronisationService
 		m_xRestCallbackSendPing.SetSyncService(this);
 		
 		// 
-		AS_PingPacket packet = new AS_PingPacket();
+		AS_PingPacketJsonApiStruct packet = new AS_PingPacketJsonApiStruct();
 		packet.serverId = m_sServerId;
 		packet.apiKey = m_sApiKey;
 		
 		packet.Pack();
 		string packetAsString = packet.AsString();
-		Print("[ArmaStats.com] PingPacket: " + packetAsString, LogLevel.DEBUG);
 		
+		AS_LoggerService.Debug("PingPacket: " + packetAsString);
+				
 		// Sending Call
 		RestContext ctx = GetGame().GetRestApi().GetContext(m_sApi);
 		ctx.SetHeaders("Content-Type,application/json");
-		ctx.POST(m_xRestCallbackSendPing, "v1/reforger-receiver/ping", packetAsString);
+		ctx.POST(m_xRestCallbackSendPing, AS_EndPointURIService.GetEndpointPing(), packetAsString);
 	}
 	
 	//------------------------------------------------------------------------------------------------
 	//! Sends the Kill Data to our API
-	void SendKill(AS_KillElement killElement)
+	void SendKill(AS_KillElement killElement, string sessionId)
 	{
 		// Create callback if not created already
 		if (!m_xRestCallbackSendKillPacket) {
@@ -144,23 +152,64 @@ class AS_StatisticsSynchronisationService
 		}
 		
 		// Create KillElement
-		AS_KillElementPacket killElementPacket = new AS_KillElementPacket();
+		AS_KillElementJsonApiStruct killElementPacket = new AS_KillElementJsonApiStruct();
 		killElementPacket.FillWithKillElementData(killElement);
 		
 		// Create KillPacket
-		AS_KillPacket killPacket = new AS_KillPacket();
+		AS_KillPacketJsonApiStruct killPacket = new AS_KillPacketJsonApiStruct();
 		killPacket.SetKillElements({killElementPacket});
 		killPacket.SetServerId(m_sServerId);
 		killPacket.SetApiKey(m_sApiKey);
+		killPacket.SetSessionId(sessionId);
 		
 		// Create JSON
 		killPacket.Pack();
 		string packetAsString = killPacket.AsString();
-		Print("[ArmaStats.com] KillPacket: " + packetAsString, LogLevel.DEBUG);
 		
+		AS_LoggerService.Debug("KillPacket: " + packetAsString);
+				
 		// Send Call
 		RestContext ctx = GetGame().GetRestApi().GetContext(m_sApi);
 		ctx.SetHeaders("Content-Type,application/json");
-		ctx.POST(m_xRestCallbackSendKillPacket, "v1/reforger-receiver/kills", packetAsString);
+		ctx.POST(m_xRestCallbackSendKillPacket, AS_EndPointURIService.GetEndpointKillLog(), packetAsString);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Sends the player statistics to our API
+	void SendPlayerStatistics(array<ref AS_PlayerStatisticsElement> playerStatisticsElements, string sessionId)
+	{
+		// Create callback if not created already
+		if (!m_xSendPlayerStatisticsRestCallback) {
+			m_xSendPlayerStatisticsRestCallback = new AS_SendPlayerStatisticsRestCallback();
+		}
+		
+		// Create the base packet
+		AS_PlayerStatisticsPacketJsonApiStruct packet = new AS_PlayerStatisticsPacketJsonApiStruct();
+		packet.SetSessionId(sessionId);
+		packet.SetServerId(m_sServerId);
+		packet.SetApiKey(m_sApiKey);
+		
+		// Map the internal statistics elements to JSON objects
+		array<ref AS_PlayerStatisticsElementJsonApiStruct> elementsToPush = {};
+		foreach (AS_PlayerStatisticsElement playerStatisticsElement : playerStatisticsElements)
+		{
+			AS_PlayerStatisticsElementJsonApiStruct elementToPush = new AS_PlayerStatisticsElementJsonApiStruct();
+			elementToPush.FillWithPlayerStatisticsElement(playerStatisticsElement);
+			
+			elementsToPush.Insert(elementToPush);
+		}
+		
+		// Assign the JSON objects to the packet
+		packet.SetPlayerStatisticsElements(elementsToPush);
+		
+		// Create JSON
+		packet.Pack();
+		string packetAsString = packet.AsString();
+		AS_LoggerService.Debug("PlayerStatisticsPacket: " + packetAsString);
+
+		// Send Call
+		RestContext ctx = GetGame().GetRestApi().GetContext(m_sApi);
+		ctx.SetHeaders("Content-Type,application/json");
+		ctx.POST(m_xRestCallbackSendKillPacket, AS_EndPointURIService.GetEndPointPlayerStatistics(), packetAsString);
 	}
 }
