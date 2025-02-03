@@ -2,15 +2,19 @@ class AS_PlayerDataCollectorSynchronisationService
 {
 	//
 	protected static ref AS_PlayerDataCollectorSynchronisationService s_Instance;
+	private ref AS_StatisticsSynchronisationService m_xStatisticsSynchronisationService;
+	
+	//
+	private string m_sSessionId;
 	
 	//
 	bool m_bIsfirstRun = true;
-	ref map<string, ref AS_PlayerStatsElement> m_mPlayerStatsElement = new map<string, ref AS_PlayerStatsElement>();
+	ref map<string, ref AS_PlayerStatisticsElement> m_mPlayerStatsElement = new map<string, ref AS_PlayerStatisticsElement>();
 	
 	//------------------------------------------------------------------------------------------------
 	//! Main Method to access the Synchronisation Service Instance.
 	//! Attention: This is a Singleton! Call AS_PlayerDataCollectorSynchronisationService.getInstance() only!
-	static ref AS_PlayerDataCollectorSynchronisationService GetInstance()
+	static ref AS_PlayerDataCollectorSynchronisationService GetInstance(string sessionId)
 	{
 		//
 	    if (s_Instance)
@@ -18,27 +22,44 @@ class AS_PlayerDataCollectorSynchronisationService
 			return s_Instance;
 		}
 		
-		//
-		s_Instance = new AS_PlayerDataCollectorSynchronisationService();
-		
+		// Create instance and bind vals
+		s_Instance = new AS_PlayerDataCollectorSynchronisationService();	
 		
 		//
 		return s_Instance;
 	}
 	
+	void SetStatisticsSynchronisationService(AS_StatisticsSynchronisationService instance)
+	{
+		m_xStatisticsSynchronisationService = instance;
+	}
+	
+	void SetSessionId(string s)
+	{
+		m_sSessionId = s;
+	}
+	
 	void StartCronjob()
 	{
-		GetGame().GetCallqueue().CallLater(GetPlayerData, 10000, true);
+		GetGame().GetCallqueue().CallLater(GetPlayerData, 60000, true);
 	}
 	
 	void GetPlayerData() 
 	{
+		// Abort in case the initialization was not successful
+		if (!m_xStatisticsSynchronisationService.IsInitializedSuccessfully()) {
+			return;
+		}
+		
+		//
 		array<int> players = new array<int>;
 		GetGame().GetPlayerManager().GetPlayers(players);
 		BackendApi backendApi = GetGame().GetBackendApi();
 		
-		array<ref AS_PlayerStatsElement> playerStatsToSend = new array<ref AS_PlayerStatsElement>;
+		//
+		array<ref AS_PlayerStatisticsElement> playerStatsToSend = new array<ref AS_PlayerStatisticsElement>;
 		
+		//
 		foreach (int playerId: players)
 		{
 			//
@@ -48,7 +69,7 @@ class AS_PlayerDataCollectorSynchronisationService
 			
 			// In case it's the first run (on initialization): Only get the data from the manager
 			if (m_bIsfirstRun) {
-				ref AS_PlayerStatsElement playerStatsElement = new AS_PlayerStatsElement();
+				ref AS_PlayerStatisticsElement playerStatsElement = new AS_PlayerStatisticsElement();
 				MapReforgerPlayerStatsToPlayerStatsElement(playerStatsElement, playerIdentityId, reforgerPlayerStats);				
 				m_mPlayerStatsElement.Set(playerIdentityId, playerStatsElement);
 				continue;
@@ -57,12 +78,12 @@ class AS_PlayerDataCollectorSynchronisationService
 			// If it's not the first run, try to create the delta and prepare data to be sent to server
 			if (!m_bIsfirstRun) {
 			    // Try to get the PlayerStatsElement from the last calculation round
-			    ref AS_PlayerStatsElement playerStatsElementLastRound = m_mPlayerStatsElement.Get(playerIdentityId);
+			    ref AS_PlayerStatisticsElement playerStatsElementLastRound = m_mPlayerStatsElement.Get(playerIdentityId);
 
 				// If there's no prev distance: just save it and abort
 				if (!playerStatsElementLastRound) {
 					//
-					ref AS_PlayerStatsElement playerStatsElement = new AS_PlayerStatsElement();
+					ref AS_PlayerStatisticsElement playerStatsElement = new AS_PlayerStatisticsElement();
 					MapReforgerPlayerStatsToPlayerStatsElement(playerStatsElementLastRound, playerIdentityId, reforgerPlayerStats);
 
                     m_mPlayerStatsElement.Set(playerIdentityId, playerStatsElementLastRound);
@@ -71,11 +92,11 @@ class AS_PlayerDataCollectorSynchronisationService
 				}
 				
 				// Create a new PlayerStats Object with the current data
-				ref AS_PlayerStatsElement playerStatsElementCurrentRound = new AS_PlayerStatsElement();
+				ref AS_PlayerStatisticsElement playerStatsElementCurrentRound = new AS_PlayerStatisticsElement();
 				MapReforgerPlayerStatsToPlayerStatsElement(playerStatsElementCurrentRound, playerIdentityId, reforgerPlayerStats);
 				
 				// Create a new PlayerStats Object with the deltas of current and last stats (we only send deltas)
-				ref AS_PlayerStatsElement playerStatsElementToSend = new AS_PlayerStatsElement();
+				ref AS_PlayerStatisticsElement playerStatsElementToSend = new AS_PlayerStatisticsElement();
                 playerStatsElementToSend.SetPlayerIdentityId(playerIdentityId);
 				MapPlayerStatsElementDeltasToElementToSend(playerStatsElementToSend, playerStatsElementLastRound, playerStatsElementCurrentRound);
 				
@@ -94,13 +115,28 @@ class AS_PlayerDataCollectorSynchronisationService
 			return;
 		}
 		
-		// TODO Send Stuff
-		Print("I would send " + playerStatsToSend.Get(0).m_fDistanceWalked);
+		// Send the statistics to the API
+		m_xStatisticsSynchronisationService.SendPlayerStatistics(playerStatsToSend, m_sSessionId);
 	}
 	
-	void MapReforgerPlayerStatsToPlayerStatsElement(AS_PlayerStatsElement playerStatsElement, string playerIdentityId, array<float> reforgerPlayerStats)
+	void MapReforgerPlayerStatsToPlayerStatsElement(AS_PlayerStatisticsElement playerStatsElement, string playerIdentityId, array<float> reforgerPlayerStats)
 	{
-		playerStatsElement.SetPlayerIdentityId(playerIdentityId);
+		playerStatsElement.SetPlayerIdentityId(playerIdentityId);		
+		playerStatsElement.SetGamingTime(reforgerPlayerStats[SCR_EDataStats.SESSION_DURATION]);
+		playerStatsElement.SetExperience(reforgerPlayerStats[SCR_EDataStats.LEVEL_EXPERIENCE]);
+		playerStatsElement.SetPointsInfantry(reforgerPlayerStats[SCR_EDataStats.SPPOINTS0]);
+		playerStatsElement.SetPointsLogistics(reforgerPlayerStats[SCR_EDataStats.SPPOINTS1]);
+		playerStatsElement.SetPointsMedical(reforgerPlayerStats[SCR_EDataStats.SPPOINTS2]);
+		playerStatsElement.SetPointsWarcriminal(reforgerPlayerStats[SCR_EDataStats.WARCRIMES]);
+		playerStatsElement.SetKillsEnemy(reforgerPlayerStats[SCR_EDataStats.KILLS]);
+		playerStatsElement.SetKillsEnemyAI(reforgerPlayerStats[SCR_EDataStats.AI_KILLS]);
+		playerStatsElement.SetKillsFriendly(reforgerPlayerStats[SCR_EDataStats.FRIENDLY_KILLS]);
+		playerStatsElement.SetKillsFriendlyAI(reforgerPlayerStats[SCR_EDataStats.FRIENDLY_AI_KILLS]);
+		playerStatsElement.SetRoadKillsEnemy(reforgerPlayerStats[SCR_EDataStats.ROADKILLS]);
+		playerStatsElement.SetRoadKillsEnemyAI(reforgerPlayerStats[SCR_EDataStats.AI_ROADKILLS]);
+		playerStatsElement.SetRoadKillsFriendly(reforgerPlayerStats[SCR_EDataStats.FRIENDLY_ROADKILLS]);
+		playerStatsElement.SetRoadKillsFriendlyAI(reforgerPlayerStats[SCR_EDataStats.FRIENDLY_AI_ROADKILLS]);
+		playerStatsElement.SetDeaths(reforgerPlayerStats[SCR_EDataStats.DEATHS]);
 		playerStatsElement.SetDistanceWalked(reforgerPlayerStats[SCR_EDataStats.DISTANCE_WALKED]);
 		playerStatsElement.SetDistanceDriven(reforgerPlayerStats[SCR_EDataStats.DISTANCE_DRIVEN]);
         playerStatsElement.SetDistanceAsOccupant(reforgerPlayerStats[SCR_EDataStats.DISTANCE_AS_OCCUPANT]);
@@ -116,11 +152,26 @@ class AS_PlayerDataCollectorSynchronisationService
         playerStatsElement.SetMorphineFriendlies(reforgerPlayerStats[SCR_EDataStats.MORPHINE_FRIENDLIES]);
 	}
 	
-	void MapPlayerStatsElementDeltasToElementToSend(AS_PlayerStatsElement playerStatsElementToSend, AS_PlayerStatsElement playerStatsElementLastRound, AS_PlayerStatsElement playerStatsElementCurrentRound)
+	void MapPlayerStatsElementDeltasToElementToSend(AS_PlayerStatisticsElement playerStatsElementToSend, AS_PlayerStatisticsElement playerStatsElementLastRound, AS_PlayerStatisticsElement playerStatsElementCurrentRound)
 	{
+		playerStatsElementToSend.SetGamingTime(playerStatsElementCurrentRound.m_fGamingTime - playerStatsElementLastRound.m_fGamingTime);
+		playerStatsElementToSend.SetExperience(playerStatsElementCurrentRound.m_fExperiencePoints - playerStatsElementLastRound.m_fExperiencePoints);
+		playerStatsElementToSend.SetPointsInfantry(playerStatsElementCurrentRound.m_fPointsInfantry - playerStatsElementLastRound.m_fPointsInfantry);
+		playerStatsElementToSend.SetPointsLogistics(playerStatsElementCurrentRound.m_fPointsLogistics - playerStatsElementLastRound.m_fPointsLogistics);
+		playerStatsElementToSend.SetPointsMedical(playerStatsElementCurrentRound.m_fPointsMedical - playerStatsElementLastRound.m_fPointsMedical);
+		playerStatsElementToSend.SetPointsWarcriminal(playerStatsElementCurrentRound.m_fPointsWarcriminal - playerStatsElementLastRound.m_fPointsWarcriminal);
+		playerStatsElementToSend.SetKillsEnemy(playerStatsElementCurrentRound.m_fKillsEnemy - playerStatsElementLastRound.m_fKillsEnemy);
+		playerStatsElementToSend.SetKillsEnemyAI(playerStatsElementCurrentRound.m_fKillsEnemyAI - playerStatsElementLastRound.m_fKillsEnemyAI);
+		playerStatsElementToSend.SetKillsFriendly(playerStatsElementCurrentRound.m_fKillsFriendly - playerStatsElementLastRound.m_fKillsFriendly);
+		playerStatsElementToSend.SetKillsFriendlyAI(playerStatsElementCurrentRound.m_fKillsFriendlyAI - playerStatsElementLastRound.m_fKillsFriendlyAI);
+		playerStatsElementToSend.SetRoadKillsEnemy(playerStatsElementCurrentRound.m_fRoadKillsEnemy - playerStatsElementLastRound.m_fRoadKillsEnemy);
+		playerStatsElementToSend.SetRoadKillsEnemyAI(playerStatsElementCurrentRound.m_fRoadKillsEnemyAI - playerStatsElementLastRound.m_fRoadKillsEnemyAI);
+		playerStatsElementToSend.SetRoadKillsFriendly(playerStatsElementCurrentRound.m_fRoadKillsFriendly - playerStatsElementLastRound.m_fRoadKillsFriendly);
+		playerStatsElementToSend.SetRoadKillsFriendlyAI(playerStatsElementCurrentRound.m_fRoadKillsFriendlyAI - playerStatsElementLastRound.m_fRoadKillsFriendlyAI);
+		playerStatsElementToSend.SetDeaths(playerStatsElementCurrentRound.m_fDeaths - playerStatsElementLastRound.m_fDeaths);
 		playerStatsElementToSend.SetDistanceWalked(playerStatsElementCurrentRound.m_fDistanceWalked - playerStatsElementLastRound.m_fDistanceWalked);
         playerStatsElementToSend.SetDistanceDriven(playerStatsElementCurrentRound.m_fDistanceDriven - playerStatsElementLastRound.m_fDistanceDriven);
-        playerStatsElementToSend.SetDistanceAsOccupant(playerStatsElementCurrentRound.m_fDistanceAsOccupant - playerStatsElementLastRound.m_fDistanceAsOccupant);
+        playerStatsElementToSend.SetDistanceAsOccupant(playerStatsElementCurrentRound.m_fDistanceDrivenAsOccupant - playerStatsElementLastRound.m_fDistanceDrivenAsOccupant);
         playerStatsElementToSend.SetShots(playerStatsElementCurrentRound.m_fShots - playerStatsElementLastRound.m_fShots);
         playerStatsElementToSend.SetGrenadesThrown(playerStatsElementCurrentRound.m_fGrenadesThrown - playerStatsElementLastRound.m_fGrenadesThrown);
         playerStatsElementToSend.SetBandagesSelf(playerStatsElementCurrentRound.m_fBandageSelf - playerStatsElementLastRound.m_fBandageSelf);
@@ -131,7 +182,5 @@ class AS_PlayerDataCollectorSynchronisationService
         playerStatsElementToSend.SetSalineFriendlies(playerStatsElementCurrentRound.m_fSalineFriendlies - playerStatsElementLastRound.m_fSalineFriendlies);
         playerStatsElementToSend.SetMorphineSelf(playerStatsElementCurrentRound.m_fMorphineSelf - playerStatsElementLastRound.m_fMorphineSelf);
         playerStatsElementToSend.SetMorphineFriendlies(playerStatsElementCurrentRound.m_fMorphineFriendlies - playerStatsElementLastRound.m_fMorphineFriendlies);	
-	}
-	
-	
+	}	
 }
