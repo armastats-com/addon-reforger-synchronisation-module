@@ -1,4 +1,9 @@
+//------------------------------------------------------------------------------------------------
+//! Helper Class for Random Strings
 class AS_RandomStringGenerator {
+	
+	//------------------------------------------------------------------------------------------------
+	// Creates and returns a random string for a given length
     static string GenerateRandomString(int length) {
         string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
         string result = "";
