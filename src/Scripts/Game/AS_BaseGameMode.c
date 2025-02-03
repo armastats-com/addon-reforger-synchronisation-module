@@ -18,25 +18,29 @@ modded class SCR_BaseGameMode : SCR_BaseGameMode
 	//! OnGameStart Event
 	override void OnGameStart()
 	{
-		// Only override logic in case we got a dedicated machine and we are not running in workbench
-		#ifndef WORKBENCH
-		if (!System.IsConsoleApp()) {
-			return;
-		}
-		#endif
-		
 		//
 		super.OnGameStart();
+
+		// Only override logic in case we got a dedicated machine and we are not running in workbench
+        #ifndef WORKBENCH
+        if (!System.IsConsoleApp()) {
+            return;
+        }
+        #endif
 		
 		//
-		m_sSessionId = AS_RandomStringGenerator.GenerateRandomString(128);
+		m_sSessionId = AS_RandomStringGenerator.GenerateRandomString(32);
 		
 		// Get an Instance of the Synchronisation Service
 		m_xStatisticsSynchronisationService = AS_StatisticsSynchronisationService.GetInstance();
 		m_xStatisticsSynchronisationService.PerformInitializationCheck();
 		
+		// Get an Instance of PlayerDataCollectorSynchronisationService
+		m_xPlayerDataCollectorSynchronisationService = AS_PlayerDataCollectorSynchronisationService.GetInstance(m_sSessionId);
+		m_xPlayerDataCollectorSynchronisationService.SetSessionId(m_sSessionId);
+		m_xPlayerDataCollectorSynchronisationService.SetStatisticsSynchronisationService(m_xStatisticsSynchronisationService);
+		
 		//
-		m_xPlayerDataCollectorSynchronisationService = AS_PlayerDataCollectorSynchronisationService.GetInstance();
 		m_xPlayerDataCollectorSynchronisationService.StartCronjob();
 		
 		//
@@ -46,20 +50,14 @@ modded class SCR_BaseGameMode : SCR_BaseGameMode
 
 	override void OnControllableDestroyed(IEntity entity, IEntity killerEntity, notnull Instigator instigator)
 	{
-		// Only override logic in case we got a dedicated machine and we are not running in workbench
-		#ifndef WORKBENCH
-		if (!System.IsConsoleApp()) {
-			return;
-		}
-		#endif
-		
 		super.OnControllableDestroyed(entity, killerEntity, instigator);
-		
-		//~ 
-		//BackendApi backendApi = GetGame().GetBackendApi();
-		//PlayerManager playerManager = GetGame().GetPlayerManager();
-		//FactionManager factionManager = GetGame().GetFactionManager();	
-		
+
+		// Only override logic in case we got a dedicated machine and we are not running in workbench
+        #ifndef WORKBENCH
+        if (!System.IsConsoleApp()) {
+            return;
+        }
+        #endif
 
 		//~ Create instigator context data to determine what the relation is between victim and killer and control types of the victim and killer
 		SCR_InstigatorContextData instigatorContextData = new SCR_InstigatorContextData(-1, entity, killerEntity, instigator);
@@ -156,7 +154,7 @@ modded class SCR_BaseGameMode : SCR_BaseGameMode
 		Print("distance: " + killElement.m_fDistance.ToString());
 		
 		//
-		m_xStatisticsSynchronisationService.SendKill(killElement);
+		m_xStatisticsSynchronisationService.SendKill(killElement, m_sSessionId);
 	}
 	
 	protected Faction GetFaction(IEntity entity, int playerID)
@@ -180,6 +178,4 @@ modded class SCR_BaseGameMode : SCR_BaseGameMode
 		
 		return SCR_FactionManager.SGetPlayerFaction(playerID);
 	}
-	
-	// GetGame().GetDataCollector().GetPlayerData(playerId);
 }
