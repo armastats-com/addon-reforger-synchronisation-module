@@ -3,6 +3,7 @@ modded class SCR_BaseGameMode : SCR_BaseGameMode
 	//	
 	private ref AS_StatisticsSynchronisationService m_xStatisticsSynchronisationService;
 	private ref AS_PlayerDataCollectorSynchronisationService m_xPlayerDataCollectorSynchronisationService;
+	private ref AS_ServerDataCollectorService m_xServerDataCollectorService;
 	
 	//
 	private BackendApi m_xBackendApi;
@@ -40,10 +41,16 @@ modded class SCR_BaseGameMode : SCR_BaseGameMode
 		m_xPlayerDataCollectorSynchronisationService.SetSessionId(m_sSessionId);
 		m_xPlayerDataCollectorSynchronisationService.SetStatisticsSynchronisationService(m_xStatisticsSynchronisationService);
 		
-		//
-		m_xPlayerDataCollectorSynchronisationService.StartCronjob();
+		// Get an Instance of ServerDataCollectorService
+		m_xServerDataCollectorService = AS_ServerDataCollectorService.GetInstance(m_sSessionId);
+		m_xServerDataCollectorService.SetSessionId(m_sSessionId);
+		m_xServerDataCollectorService.SetStatisticsSynchronisationService(m_xStatisticsSynchronisationService);
 		
-		//
+		// Start Cronjob
+		m_xPlayerDataCollectorSynchronisationService.StartCronjob();
+		m_xServerDataCollectorService.StartCronjob();
+		
+		// Link to relevant Components
 		m_xBackendApi = GetGame().GetBackendApi();
 		m_xPlayerManager = GetGame().GetPlayerManager();
 	}

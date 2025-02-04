@@ -15,6 +15,7 @@ class AS_StatisticsSynchronisationService
 	ref AS_RestCallbackSendPing m_xRestCallbackSendPing;
 	ref AS_RestCallbackSendKillPacket m_xRestCallbackSendKillPacket;
 	ref AS_SendPlayerStatisticsRestCallback m_xSendPlayerStatisticsRestCallback;
+	ref AS_SendServerStatisticsRestCallback m_xSendServerStatisticsRestCallback;
 	
 	
 	//------------------------------------------------------------------------------------------------
@@ -42,7 +43,7 @@ class AS_StatisticsSynchronisationService
 		//
 		if (!s_Instance)
 		{
-			Print("[ArmaStats.com] Initialization failed: No instance available.", LogLevel.ERROR);
+			AS_LoggerService.Error("Initialization failed: No instance available.");
 			return;
 		}
 		
@@ -211,5 +212,36 @@ class AS_StatisticsSynchronisationService
 		RestContext ctx = GetGame().GetRestApi().GetContext(m_sApi);
 		ctx.SetHeaders("Content-Type,application/json");
 		ctx.POST(m_xRestCallbackSendKillPacket, AS_EndPointURIService.GetEndPointPlayerStatistics(), packetAsString);
+	}
+	
+	void SendServerStatistics(AS_ServerStatistics serverStatistics, string sessionId)
+	{
+		// Create callback if not created already
+		if (!m_xSendServerStatisticsRestCallback) {
+			m_xSendServerStatisticsRestCallback = new AS_SendServerStatisticsRestCallback();
+		}
+		
+		// Create the base packet
+		AS_ServerStatisticsPacketJsonApiStruct packet = new AS_ServerStatisticsPacketJsonApiStruct();
+		packet.SetSessionId(sessionId);
+		packet.SetServerId(m_sServerId);
+		packet.SetApiKey(m_sApiKey);
+		
+		// Create the server statistics object
+		AS_ServerStatisticsJsonApiStruct serverStatisticsJsonApiStruct = new AS_ServerStatisticsJsonApiStruct();
+		serverStatisticsJsonApiStruct.FillWithServerStatistics(serverStatistics);
+		
+		//
+		packet.SetServerStatistic(serverStatisticsJsonApiStruct);
+		
+		// Create JSON
+		packet.Pack();
+		string packetAsString = packet.AsString();
+		AS_LoggerService.Debug("ServerStatisticsPacket: " + packetAsString);
+
+		// Send Call
+		RestContext ctx = GetGame().GetRestApi().GetContext(m_sApi);
+		ctx.SetHeaders("Content-Type,application/json");
+		ctx.POST(m_xRestCallbackSendKillPacket, AS_EndPointURIService.GetEndPointServerStatistics(), packetAsString);
 	}
 }
