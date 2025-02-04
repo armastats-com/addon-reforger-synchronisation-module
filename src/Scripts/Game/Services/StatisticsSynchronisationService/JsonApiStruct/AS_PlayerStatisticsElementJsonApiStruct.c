@@ -48,8 +48,6 @@ class AS_PlayerStatisticsElementJsonApiStruct : JsonApiStruct
 		RegV("roadKillsFriendly");
 		RegV("roadKillsFriendlyAI");
 		RegV("deaths");
-		RegV("gamingTime");
-		RegV("gamingTime");
 		RegV("distanceWalked");
 		RegV("distanceDriven");
 		RegV("distanceDrivenAsOccupant");
