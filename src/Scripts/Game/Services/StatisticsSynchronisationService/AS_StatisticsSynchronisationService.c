@@ -12,8 +12,8 @@ class AS_StatisticsSynchronisationService
 	bool m_bInitSuccessfully = false;
 	bool m_bConnectedSuccessfully = false;
 	
-	ref AS_RestCallbackSendPing m_xRestCallbackSendPing;
-	ref AS_RestCallbackSendKillPacket m_xRestCallbackSendKillPacket;
+	ref AS_SendPingRestCallback m_xSendPingRestCallback;
+	ref AS_SendKillPacketRestCallback m_xSendKillPacketRestCallback;
 	ref AS_SendPlayerStatisticsRestCallback m_xSendPlayerStatisticsRestCallback;
 	ref AS_SendServerStatisticsRestCallback m_xSendServerStatisticsRestCallback;
 	
@@ -52,6 +52,7 @@ class AS_StatisticsSynchronisationService
 		m_sServerId = "67a0f0130ca5886d8f1306e1";
 		m_sApiKey = "rofldiekatz";
 		m_bInitSuccessfully = true;
+		m_bConnectedSuccessfully = true;
 		#endif
 		
 		//
@@ -108,7 +109,7 @@ class AS_StatisticsSynchronisationService
 	
 	bool IsInitializedSuccessfully()
 	{
-		return m_bConnectedSuccessfully;
+		return m_bInitSuccessfully;
 	}
 	
 	bool IsReadyToSendPackets() {
@@ -120,12 +121,12 @@ class AS_StatisticsSynchronisationService
 	void SendPing()
 	{
 		// If callback is not set already: Create a new one
-		if (!m_xRestCallbackSendPing) {
-			m_xRestCallbackSendPing = new AS_RestCallbackSendPing();
+		if (!m_xSendPingRestCallback) {
+			m_xSendPingRestCallback = new AS_SendPingRestCallback();
 		}
 		
 		// Referencing SyncService in order to access service function
-		m_xRestCallbackSendPing.SetSyncService(this);
+		m_xSendPingRestCallback.SetSyncService(this);
 		
 		// 
 		AS_PingPacketJsonApiStruct packet = new AS_PingPacketJsonApiStruct();
@@ -140,7 +141,7 @@ class AS_StatisticsSynchronisationService
 		// Sending Call
 		RestContext ctx = GetGame().GetRestApi().GetContext(m_sApi);
 		ctx.SetHeaders("Content-Type,application/json");
-		ctx.POST(m_xRestCallbackSendPing, AS_EndPointURIService.GetEndpointPing(), packetAsString);
+		ctx.POST(m_xSendPingRestCallback, AS_EndPointURIService.GetEndpointPing(), packetAsString);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -148,8 +149,8 @@ class AS_StatisticsSynchronisationService
 	void SendKill(AS_KillElement killElement, string sessionId)
 	{
 		// Create callback if not created already
-		if (!m_xRestCallbackSendKillPacket) {
-			m_xRestCallbackSendKillPacket = new AS_RestCallbackSendKillPacket();
+		if (!m_xSendKillPacketRestCallback) {
+			m_xSendKillPacketRestCallback = new AS_SendKillPacketRestCallback();
 		}
 		
 		// Create KillElement
@@ -172,7 +173,7 @@ class AS_StatisticsSynchronisationService
 		// Send Call
 		RestContext ctx = GetGame().GetRestApi().GetContext(m_sApi);
 		ctx.SetHeaders("Content-Type,application/json");
-		ctx.POST(m_xRestCallbackSendKillPacket, AS_EndPointURIService.GetEndpointKillLog(), packetAsString);
+		ctx.POST(m_xSendKillPacketRestCallback, AS_EndPointURIService.GetEndpointKillLog(), packetAsString);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -211,9 +212,11 @@ class AS_StatisticsSynchronisationService
 		// Send Call
 		RestContext ctx = GetGame().GetRestApi().GetContext(m_sApi);
 		ctx.SetHeaders("Content-Type,application/json");
-		ctx.POST(m_xRestCallbackSendKillPacket, AS_EndPointURIService.GetEndPointPlayerStatistics(), packetAsString);
+		ctx.POST(m_xSendPlayerStatisticsRestCallback, AS_EndPointURIService.GetEndPointPlayerStatistics(), packetAsString);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Sends the server statistics to our API
 	void SendServerStatistics(AS_ServerStatistics serverStatistics, string sessionId)
 	{
 		// Create callback if not created already
@@ -242,6 +245,6 @@ class AS_StatisticsSynchronisationService
 		// Send Call
 		RestContext ctx = GetGame().GetRestApi().GetContext(m_sApi);
 		ctx.SetHeaders("Content-Type,application/json");
-		ctx.POST(m_xRestCallbackSendKillPacket, AS_EndPointURIService.GetEndPointServerStatistics(), packetAsString);
+		ctx.POST(m_xSendServerStatisticsRestCallback, AS_EndPointURIService.GetEndPointServerStatistics(), packetAsString);
 	}
 }

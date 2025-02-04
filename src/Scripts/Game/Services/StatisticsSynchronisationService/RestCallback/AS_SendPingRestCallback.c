@@ -1,4 +1,4 @@
-class AS_RestCallbackSendKillPacket : RestCallback
+class AS_SendPingRestCallback : RestCallback
 {
 	ref AS_StatisticsSynchronisationService m_xSyncService;
 	
@@ -10,7 +10,7 @@ class AS_RestCallbackSendKillPacket : RestCallback
 	//------------------------------------------------------------------------------------------------
 	override void OnError(int errorCode)
 	{
-		Print("[ArmaStats.com] Error while trying to send kill, API returned " + errorCode.ToString(), LogLevel.ERROR);
+		AS_LoggerService.Error("Ping failed, API returned: " + errorCode.ToString());
 		// TODO-AS Try again after 30 Seconds
 		// TODO-AS More Details depending on errorCode
 	}
@@ -18,13 +18,14 @@ class AS_RestCallbackSendKillPacket : RestCallback
 	//------------------------------------------------------------------------------------------------
 	override void OnTimeout()
 	{
-		Print("[ArmaStats.com] Timeout while trying to send kill", LogLevel.ERROR);
+		AS_LoggerService.Error("Ping failed, Timeout while trying to connect to the API.");
 		// TODO-AS Try again after 30 Seconds
 	}
 
 	//------------------------------------------------------------------------------------------------
 	override void OnSuccess(string data, int dataSize)
 	{	
-		Print("[ArmaStats.com] Kill sent successfully!", LogLevel.DEBUG);
+		m_xSyncService.SetConnectedSuccessfully();
+		AS_LoggerService.Log("Connected successfully!");
 	}
 }
