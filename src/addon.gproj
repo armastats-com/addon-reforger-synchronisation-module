@@ -1,7 +1,7 @@
 GameProject {
  ID "AS_SatisticsModule"
  GUID "647C62912FCE9459"
- TITLE "armastats.com - Statistics Module for Arma Reforger"
+ TITLE "ArmaStats.com - Statistics Module for Arma Reforger"
  Dependencies {
   "58D0FB3206B6F859"
  }
