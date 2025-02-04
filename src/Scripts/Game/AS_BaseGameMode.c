@@ -65,6 +65,11 @@ modded class SCR_BaseGameMode : SCR_BaseGameMode
             return;
         }
         #endif
+		
+		// In case the statistics service is not initialized successfully: abort
+		if (!m_xStatisticsSynchronisationService.IsInitializedSuccessfully()) {
+			return;
+		}
 
 		//~ Create instigator context data to determine what the relation is between victim and killer and control types of the victim and killer
 		SCR_InstigatorContextData instigatorContextData = new SCR_InstigatorContextData(-1, entity, killerEntity, instigator);
