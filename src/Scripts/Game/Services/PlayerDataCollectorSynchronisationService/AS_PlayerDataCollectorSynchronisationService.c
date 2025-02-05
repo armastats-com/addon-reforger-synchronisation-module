@@ -57,6 +57,12 @@ class AS_PlayerDataCollectorSynchronisationService
 		BackendApi backendApi = GetGame().GetBackendApi();
 		
 		//
+		if (players.Count() == 0) 
+		{
+			return;
+		}
+		
+		//
 		array<ref AS_PlayerStatisticsElement> playerStatsToSend = new array<ref AS_PlayerStatisticsElement>;
 		
 		//
