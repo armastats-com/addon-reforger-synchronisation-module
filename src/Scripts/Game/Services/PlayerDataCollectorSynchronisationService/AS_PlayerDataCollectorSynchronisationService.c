@@ -128,7 +128,7 @@ class AS_PlayerDataCollectorSynchronisationService
 	void MapReforgerPlayerStatsToPlayerStatsElement(AS_PlayerStatisticsElement playerStatsElement, string playerIdentityId, array<float> reforgerPlayerStats)
 	{
 		playerStatsElement.SetPlayerIdentityId(playerIdentityId);		
-		playerStatsElement.SetGamingTime(reforgerPlayerStats[SCR_EDataStats.SESSION_DURATION]);
+		playerStatsElement.SetGamingTime(System.GetUnixTime());
 		playerStatsElement.SetExperience(reforgerPlayerStats[SCR_EDataStats.LEVEL_EXPERIENCE]);
 		playerStatsElement.SetPointsInfantry(reforgerPlayerStats[SCR_EDataStats.SPPOINTS0]);
 		playerStatsElement.SetPointsLogistics(reforgerPlayerStats[SCR_EDataStats.SPPOINTS1]);
