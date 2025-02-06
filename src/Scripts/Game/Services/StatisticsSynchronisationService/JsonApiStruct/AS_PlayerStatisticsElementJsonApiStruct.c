@@ -67,7 +67,7 @@ class AS_PlayerStatisticsElementJsonApiStruct : JsonApiStruct
 	{
 	 	playerIdentityId = element.m_sPlayerIdentityId;
         gamingTime = element.m_fGamingTime;
-		experiencePoints = element.m_fGamingTime;
+		experiencePoints = element.m_fExperiencePoints;
 		pointsInfantry = element.m_fPointsInfantry;
 		pointsLogistics = element.m_fPointsLogistics;
 		pointsMedical = element.m_fPointsMedical;
