@@ -90,9 +90,9 @@ class AS_PlayerDataCollectorSynchronisationService
 				if (!playerStatsElementLastRound) {
 					//
 					ref AS_PlayerStatisticsElement playerStatsElement = new AS_PlayerStatisticsElement();
-					MapReforgerPlayerStatsToPlayerStatsElement(playerStatsElementLastRound, playerIdentityId, reforgerPlayerStats);
+					MapReforgerPlayerStatsToPlayerStatsElement(playerStatsElement, playerIdentityId, reforgerPlayerStats);
 
-                    m_mPlayerStatsElement.Set(playerIdentityId, playerStatsElementLastRound);
+                    m_mPlayerStatsElement.Set(playerIdentityId, playerStatsElement);
 
 					continue;
 				}
