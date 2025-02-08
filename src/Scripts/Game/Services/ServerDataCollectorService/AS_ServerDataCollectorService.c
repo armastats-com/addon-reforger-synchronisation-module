@@ -47,10 +47,48 @@ class AS_ServerDataCollectorService
 
 		//
 	    int playerCountOnline = GetGame().GetPlayerManager().GetPlayerCount();
-	
+		
+		//
+		int playerCountOnlineXbox = 0;
+		int playerCountOnlinePS = 0;
+		int playerCountOnlinePC = 0;
+		array<int> players = new array<int>;		
+		GetGame().GetPlayerManager().GetPlayers(players);
+		foreach (int playerId: players)
+		{
+			PlatformKind platform = GetGame().GetPlayerManager().GetPlatformKind(playerId);
+			switch (platform)
+			{
+				case PlatformKind.PSN:
+				{
+					playerCountOnlinePS++;
+					break;
+				}
+				case PlatformKind.XBOX:
+				{
+					playerCountOnlineXbox++;
+					break;
+				}
+				case PlatformKind.STEAM:
+				{
+					playerCountOnlinePC++;
+					break;
+				}
+				case PlatformKind.NONE:
+				{
+					playerCountOnlinePC++;
+					break;
+				}
+			}
+		}
+		
+		
 		//
 		AS_ServerStatistics serverStatistics = new AS_ServerStatistics();
 		serverStatistics.SetNumberOfPlayersOnline(playerCountOnline);
+		serverStatistics.SetNumberOfPlayersOnlineXbox(playerCountOnlineXbox);
+		serverStatistics.SetNumberOfPlayersOnlinePS(playerCountOnlinePS);
+		serverStatistics.SetNumberOfPlayersOnlinePC(playerCountOnlinePC);
 
 		//
 		m_xStatisticsSynchronisationService.SendServerStatistics(serverStatistics, m_sSessionId);
