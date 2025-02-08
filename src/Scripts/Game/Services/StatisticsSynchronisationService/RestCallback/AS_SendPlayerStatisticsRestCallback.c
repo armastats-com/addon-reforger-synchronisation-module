@@ -10,7 +10,7 @@ class AS_SendPlayerStatisticsRestCallback : RestCallback
 	//------------------------------------------------------------------------------------------------
 	override void OnError(int errorCode)
 	{
-		AS_LoggerService.Error("Error while trying to send player statistics" + errorCode.ToString());
+		AS_LoggerService.Error("Error while trying to send player statistics, API returned: " + errorCode.ToString());
 		// TODO-AS Try again after 30 Seconds
 		// TODO-AS More Details depending on errorCode
 	}

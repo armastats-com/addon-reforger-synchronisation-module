@@ -3,7 +3,7 @@ class AS_SendServerStatisticsRestCallback : RestCallback
 	//------------------------------------------------------------------------------------------------
 	override void OnError(int errorCode)
 	{
-		AS_LoggerService.Error("Error while trying to send server statistics: " + errorCode.ToString());
+		AS_LoggerService.Error("Error while trying to send server statistics, API returned: " + errorCode.ToString());
 	}
 
 	//------------------------------------------------------------------------------------------------

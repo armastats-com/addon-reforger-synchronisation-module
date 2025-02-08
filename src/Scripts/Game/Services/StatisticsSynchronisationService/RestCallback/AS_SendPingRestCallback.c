@@ -10,7 +10,7 @@ class AS_SendPingRestCallback : RestCallback
 	//------------------------------------------------------------------------------------------------
 	override void OnError(int errorCode)
 	{
-		AS_LoggerService.Error("Ping failed, API returned: " + errorCode.ToString());
+		AS_LoggerService.Error("Error while trying to send ping, API returned: " + errorCode.ToString());
 		// TODO-AS Try again after 30 Seconds
 		// TODO-AS More Details depending on errorCode
 	}
