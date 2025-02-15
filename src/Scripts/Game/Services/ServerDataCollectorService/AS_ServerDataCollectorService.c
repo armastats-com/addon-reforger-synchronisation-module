@@ -47,7 +47,8 @@ class AS_ServerDataCollectorService
 
 		//
 	    int playerCountOnline = GetGame().GetPlayerManager().GetPlayerCount();
-		
+		int playerCountMax = GetGame().GetServerInfo().GetPlayerLimit();
+			
 		//
 		int playerCountOnlineXbox = 0;
 		int playerCountOnlinePS = 0;
@@ -89,6 +90,7 @@ class AS_ServerDataCollectorService
 		serverStatistics.SetNumberOfPlayersOnlineXbox(playerCountOnlineXbox);
 		serverStatistics.SetNumberOfPlayersOnlinePS(playerCountOnlinePS);
 		serverStatistics.SetNumberOfPlayersOnlinePC(playerCountOnlinePC);
+		serverStatistics.SetNumberOfPlayersOnlineMax(playerCountMax);
 
 		//
 		m_xStatisticsSynchronisationService.SendServerStatistics(serverStatistics, m_sSessionId);

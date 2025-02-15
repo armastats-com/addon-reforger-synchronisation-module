@@ -1,6 +1,7 @@
 class AS_PlayerStatisticsElement
 {
     string m_sPlayerIdentityId;
+    string m_sPlayerName;
 	
 	float m_fGamingTime;
 	
@@ -49,6 +50,11 @@ class AS_PlayerStatisticsElement
     {
 
     }
+	
+	void SetPlayerName(string s) 
+	{
+		m_sPlayerName = s;
+	}
 	
 	void SetRoadKillsFriendly(float f)
 	{

@@ -5,6 +5,11 @@ class AS_ServerStatistics
     float m_iNumberOfPlayersOnlineXbox;
     float m_iNumberOfPlayersOnlinePS;
     float m_iNumberOfPlayersOnlinePC;
+	
+    float m_iNumberOfPlayersOnlineMax;
+	
+    float m_iNumberOfPlayersOnlineQueue;
+    float m_iNumberOfPlayersOnlineQueueMax;
 
     //------------------------------------------------------------------------------------------------
     void AS_ServerStatistics()
@@ -30,6 +35,21 @@ class AS_ServerStatistics
 	void SetNumberOfPlayersOnlinePC(int f)
 	{
 		m_iNumberOfPlayersOnlinePC = f;
+	}
+	
+	void SetNumberOfPlayersOnlineMax(int f)
+	{
+		m_iNumberOfPlayersOnlineMax = f;
+	}
+	
+	void SetNumberOfPlayersOnlineQueue(int f)
+	{
+		m_iNumberOfPlayersOnlineQueue = f;
+	}
+	
+	void SetNumberOfPlayersOnlineQueueMax(int f)
+	{
+		m_iNumberOfPlayersOnlineQueueMax = f;
 	}
 
 };

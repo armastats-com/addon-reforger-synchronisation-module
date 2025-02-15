@@ -4,6 +4,7 @@ class AS_ServerStatisticsJsonApiStruct : JsonApiStruct
 	int numberOfPlayersOnlineXbox;
 	int numberOfPlayersOnlinePS;
 	int numberOfPlayersOnlinePC;
+	int numberOfPlayersOnlineMax;
 	
 	void AS_ServerStatisticsJsonApiStruct()
 	{
@@ -11,6 +12,7 @@ class AS_ServerStatisticsJsonApiStruct : JsonApiStruct
 		RegV("numberOfPlayersOnlineXbox");
 		RegV("numberOfPlayersOnlinePS");
 		RegV("numberOfPlayersOnlinePC");
+		RegV("numberOfPlayersOnlineMax");
 	}
 	
 	void FillWithServerStatistics(AS_ServerStatistics element)
@@ -19,5 +21,6 @@ class AS_ServerStatisticsJsonApiStruct : JsonApiStruct
 	 	numberOfPlayersOnlineXbox = element.m_iNumberOfPlayersOnlineXbox;
 	 	numberOfPlayersOnlinePS = element.m_iNumberOfPlayersOnlinePS;
 	 	numberOfPlayersOnlinePC = element.m_iNumberOfPlayersOnlinePC;
+	 	numberOfPlayersOnlineMax = element.m_iNumberOfPlayersOnlineMax;
 	}
 }

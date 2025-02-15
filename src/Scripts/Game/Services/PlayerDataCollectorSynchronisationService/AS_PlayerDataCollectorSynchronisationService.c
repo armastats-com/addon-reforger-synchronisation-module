@@ -71,12 +71,13 @@ class AS_PlayerDataCollectorSynchronisationService
 			//
 			SCR_PlayerData playerDataNew = GetGame().GetDataCollector().GetPlayerData(playerId);
 			string playerIdentityId = backendApi.GetPlayerIdentityId(playerId);
+			string playerName = GetGame().GetPlayerManager().GetPlayerName(playerId);
 			array<float> reforgerPlayerStats = playerDataNew.GetStats();
 			
 			// In case it's the first run (on initialization): Only get the data from the manager
 			if (m_bIsfirstRun) {
 				ref AS_PlayerStatisticsElement playerStatsElement = new AS_PlayerStatisticsElement();
-				MapReforgerPlayerStatsToPlayerStatsElement(playerStatsElement, playerIdentityId, reforgerPlayerStats);				
+				MapReforgerPlayerStatsToPlayerStatsElement(playerStatsElement, playerIdentityId, reforgerPlayerStats, playerName);				
 				m_mPlayerStatsElement.Set(playerIdentityId, playerStatsElement);
 				continue;
 			}
@@ -90,7 +91,7 @@ class AS_PlayerDataCollectorSynchronisationService
 				if (!playerStatsElementLastRound) {
 					//
 					ref AS_PlayerStatisticsElement playerStatsElement = new AS_PlayerStatisticsElement();
-					MapReforgerPlayerStatsToPlayerStatsElement(playerStatsElement, playerIdentityId, reforgerPlayerStats);
+					MapReforgerPlayerStatsToPlayerStatsElement(playerStatsElement, playerIdentityId, reforgerPlayerStats, playerName);
 
                     m_mPlayerStatsElement.Set(playerIdentityId, playerStatsElement);
 
@@ -99,11 +100,12 @@ class AS_PlayerDataCollectorSynchronisationService
 				
 				// Create a new PlayerStats Object with the current data
 				ref AS_PlayerStatisticsElement playerStatsElementCurrentRound = new AS_PlayerStatisticsElement();
-				MapReforgerPlayerStatsToPlayerStatsElement(playerStatsElementCurrentRound, playerIdentityId, reforgerPlayerStats);
+				MapReforgerPlayerStatsToPlayerStatsElement(playerStatsElementCurrentRound, playerIdentityId, reforgerPlayerStats, playerName);
 				
 				// Create a new PlayerStats Object with the deltas of current and last stats (we only send deltas)
 				ref AS_PlayerStatisticsElement playerStatsElementToSend = new AS_PlayerStatisticsElement();
                 playerStatsElementToSend.SetPlayerIdentityId(playerIdentityId);
+				playerStatsElementToSend.SetPlayerName(playerName);
 				MapPlayerStatsElementDeltasToElementToSend(playerStatsElementToSend, playerStatsElementLastRound, playerStatsElementCurrentRound);
 				
 				// Add the Delta Object to our "to send" queue
@@ -125,9 +127,10 @@ class AS_PlayerDataCollectorSynchronisationService
 		m_xStatisticsSynchronisationService.SendPlayerStatistics(playerStatsToSend, m_sSessionId);
 	}
 	
-	void MapReforgerPlayerStatsToPlayerStatsElement(AS_PlayerStatisticsElement playerStatsElement, string playerIdentityId, array<float> reforgerPlayerStats)
+	void MapReforgerPlayerStatsToPlayerStatsElement(AS_PlayerStatisticsElement playerStatsElement, string playerIdentityId, array<float> reforgerPlayerStats, string playerName)
 	{
 		playerStatsElement.SetPlayerIdentityId(playerIdentityId);		
+		playerStatsElement.SetPlayerName(playerName);		
 		playerStatsElement.SetGamingTime(System.GetUnixTime());
 		playerStatsElement.SetExperience(reforgerPlayerStats[SCR_EDataStats.LEVEL_EXPERIENCE]);
 		playerStatsElement.SetPointsInfantry(reforgerPlayerStats[SCR_EDataStats.SPPOINTS0]);

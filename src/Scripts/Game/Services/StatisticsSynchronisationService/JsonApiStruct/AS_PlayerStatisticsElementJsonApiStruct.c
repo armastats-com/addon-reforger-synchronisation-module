@@ -1,6 +1,7 @@
 class AS_PlayerStatisticsElementJsonApiStruct : JsonApiStruct
 {
 	string playerIdentityId;
+	string playerName;
 	float gamingTime;
 	float experiencePoints;
 	float pointsInfantry;
@@ -33,6 +34,7 @@ class AS_PlayerStatisticsElementJsonApiStruct : JsonApiStruct
 	void AS_PlayerStatisticsElementJsonApiStruct()
 	{
 		RegV("playerIdentityId");
+		RegV("playerName");
 		RegV("gamingTime");
 		RegV("experiencePoints");
 		RegV("pointsInfantry");
@@ -66,6 +68,7 @@ class AS_PlayerStatisticsElementJsonApiStruct : JsonApiStruct
 	void FillWithPlayerStatisticsElement(AS_PlayerStatisticsElement element)
 	{
 	 	playerIdentityId = element.m_sPlayerIdentityId;
+	 	playerName = element.m_sPlayerName;
         gamingTime = element.m_fGamingTime;
 		experiencePoints = element.m_fExperiencePoints;
 		pointsInfantry = element.m_fPointsInfantry;
