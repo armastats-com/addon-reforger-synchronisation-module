@@ -38,7 +38,7 @@
 
 ## ⚡ Quick start on developing
 
-> **Note**
+> [!NOTE]
 > Feel free to create pull requests which add new features, improve performance or maintainability of this project.
 > In case of bigger wishes, do not hesitate to open a [discussion](https://github.com/armastats-com/addon-reforger-synchronisation-module/discussions).
 
