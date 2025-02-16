@@ -10,14 +10,14 @@
 > [!WARNING]
 > This addon is still in **ALPHA** and for internal testing only. Until version 1.0.0 there is no backward compatibility guarantee! Expect some bugs/performance issues and function signature updates until then. Feedback via [issue](https://github.com/armastats-com/addon-reforger-synchronisation-module/issues) or [discussion](https://github.com/armastats-com/addon-reforger-synchronisation-module/discussions) is welcome.
 
-**A statistics addon to connect your Arma Reforger Server to the API of https://armastats.com/.**
-
 > [!NOTE]
 > With this addon alone you will not be able to have any statistics on your server! This addon gathers all the data and sends it to https://armastats.com/. 
 > All gathered statistics will be visible on this website!
 
 > [!IMPORTANT]
 > Due to ongoing outages of the Arma Reforger Workshop, the current version of this addon might not be available in the Workshop.
+
+**A statistics addon to connect your Arma Reforger Server to the API of https://armastats.com/.**
 
 ## 🚀 Features
 - ✅ Gather and send kill statistics
