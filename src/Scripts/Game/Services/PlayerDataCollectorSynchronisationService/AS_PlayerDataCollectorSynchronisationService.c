@@ -124,7 +124,41 @@ class AS_PlayerDataCollectorSynchronisationService
 		}
 		
 		// Send the statistics to the API
-		m_xStatisticsSynchronisationService.SendPlayerStatistics(playerStatsToSend, m_sSessionId);
+		m_xStatisticsSynchronisationService.SendPlayerStatistics(playerStatsToSend, m_sSessionId, false);
+	}
+	
+	void HandlePlayerDisconnect(int playerId) 
+	{
+		//
+		BackendApi backendApi = GetGame().GetBackendApi();
+		SCR_PlayerData playerDataNew = GetGame().GetDataCollector().GetPlayerData(playerId);
+		string playerIdentityId = backendApi.GetPlayerIdentityId(playerId);
+		string playerName = GetGame().GetPlayerManager().GetPlayerName(playerId);
+		array<float> reforgerPlayerStats = playerDataNew.GetStats();
+		
+		//
+		ref AS_PlayerStatisticsElement playerStatsElementLastRound = m_mPlayerStatsElement.Get(playerIdentityId);
+		
+		//
+		if (!playerStatsElementLastRound) {
+			return;
+		}
+		
+		// Create a new PlayerStats Object with the current data
+		ref AS_PlayerStatisticsElement playerStatsElementCurrentRound = new AS_PlayerStatisticsElement();
+		MapReforgerPlayerStatsToPlayerStatsElement(playerStatsElementCurrentRound, playerIdentityId, reforgerPlayerStats, playerName);
+		
+		// Create a new PlayerStats Object with the deltas of current and last stats (we only send deltas)
+		ref AS_PlayerStatisticsElement playerStatsElementToSend = new AS_PlayerStatisticsElement();
+        playerStatsElementToSend.SetPlayerIdentityId(playerIdentityId);
+		playerStatsElementToSend.SetPlayerName(playerName);
+		MapPlayerStatsElementDeltasToElementToSend(playerStatsElementToSend, playerStatsElementLastRound, playerStatsElementCurrentRound);
+		
+		// Send the statistics to the API
+		m_xStatisticsSynchronisationService.SendPlayerStatistics({playerStatsElementToSend}, m_sSessionId, true);
+		
+		//
+		m_mPlayerStatsElement.Remove(playerIdentityId);
 	}
 	
 	void MapReforgerPlayerStatsToPlayerStatsElement(AS_PlayerStatisticsElement playerStatsElement, string playerIdentityId, array<float> reforgerPlayerStats, string playerName)

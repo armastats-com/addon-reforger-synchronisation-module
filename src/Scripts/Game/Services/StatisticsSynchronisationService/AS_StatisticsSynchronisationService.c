@@ -178,7 +178,10 @@ class AS_StatisticsSynchronisationService
 
 	//------------------------------------------------------------------------------------------------
 	//! Sends the player statistics to our API
-	void SendPlayerStatistics(array<ref AS_PlayerStatisticsElement> playerStatisticsElements, string sessionId)
+	void SendPlayerStatistics(array<ref AS_PlayerStatisticsElement> playerStatisticsElements, 
+							  string sessionId,
+							  bool isSyncOnPlayerDisconnect
+	)
 	{
 		// Create callback if not created already
 		if (!m_xSendPlayerStatisticsRestCallback) {
@@ -190,6 +193,7 @@ class AS_StatisticsSynchronisationService
 		packet.SetSessionId(sessionId);
 		packet.SetServerId(m_sServerId);
 		packet.SetApiKey(m_sApiKey);
+		packet.SetIsSyncOnPlayerDisconnect(isSyncOnPlayerDisconnect);
 		
 		// Map the internal statistics elements to JSON objects
 		array<ref AS_PlayerStatisticsElementJsonApiStruct> elementsToPush = {};

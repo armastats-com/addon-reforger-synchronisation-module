@@ -75,27 +75,6 @@ modded class SCR_BaseGameMode : SCR_BaseGameMode
 		SCR_InstigatorContextData instigatorContextData = new SCR_InstigatorContextData(-1, entity, killerEntity, instigator);
 		m_OnControllableDestroyed.Invoke(instigatorContextData);
 		
-		//~
-		// TODO Case Suicide 
-		// TODO Case KILLED_BY_ENEMY_AI
-		// TODO Case KILLED_BY_ENEMY_PLAYER
-		// TODO Case KILLED_BY_FRIENDLY_AI
-		// TODO Case KILLED_BY_FRIENDLY_PLAYER
-		// TODO Case KILLED_BY_UNLIMITED_EDITOR
-		// TODO Case DELETED
-		// TODO Case DELETED_BY_EDITOR
-		// TODO Case VICTIM_IS_NEUTRAL_OR_FACTIONLESS
-		// TODO Case NOT_A_CHARACTER
-		// string victimKillerRelation = typename.EnumToString(SCR_ECharacterDeathStatusRelations, instigatorContextData.GetVictimKillerRelation());
-		
-		//~
-		// TODO UNKNOWN
-		// TODO PLAYER
-		// TODO AI
-		// TODO POSSESSED_AI
-		// TODO UNLIMITED_EDITOR
-		//string victimCharacterControlType = typename.EnumToString(SCR_ECharacterControlType, instigatorContextData.GetVictimCharacterControlType());
-
 		//
 		AS_KillElement killElement = new AS_KillElement();
 		
@@ -167,6 +146,14 @@ modded class SCR_BaseGameMode : SCR_BaseGameMode
 		
 		//
 		m_xStatisticsSynchronisationService.SendKill(killElement, m_sSessionId);
+	}
+	
+	override void OnPlayerDisconnected(int playerId,
+							           KickCauseCode cause,
+									   int timeout )
+	{
+		super.OnPlayerDisconnected(playerId, cause, timeout);
+		m_xPlayerDataCollectorSynchronisationService.HandlePlayerDisconnect(playerId);
 	}
 	
 	protected Faction GetFaction(IEntity entity, int playerID)
