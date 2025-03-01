@@ -4,14 +4,14 @@ class AS_ServerDataCollectorService
 	protected static ref AS_ServerDataCollectorService s_Instance;
 	protected ref AS_StatisticsSynchronisationService m_xStatisticsSynchronisationService;
 	protected string m_sSessionId;
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Main Method to access the ServerDataCollectorService Service Instance.
 	//! Attention: This is a Singleton! Call AS_ServerDataCollectorService.getInstance() only!
 	static ref AS_ServerDataCollectorService GetInstance(string sessionId)
 	{
 		//
-	    if (s_Instance)
+		if (s_Instance)
 		{
 			return s_Instance;
 		}
@@ -22,40 +22,45 @@ class AS_ServerDataCollectorService
 		//
 		return s_Instance;
 	}
-	
+
 	void SetStatisticsSynchronisationService(AS_StatisticsSynchronisationService instance)
 	{
 		m_xStatisticsSynchronisationService = instance;
 	}
-	
+
 	void SetSessionId(string s)
 	{
 		m_sSessionId = s;
 	}
-	
+
 	void StartCronjob()
 	{
 		GetGame().GetCallqueue().CallLater(GetServerData, 60000, true);
 	}
-	
+
 	void GetServerData()
 	{
+
 		// Abort in case the initialization was not successful
 		if (!m_xStatisticsSynchronisationService.IsInitializedSuccessfully()) {
 			return;
 		}
 
 		//
-	    int playerCountOnline = GetGame().GetPlayerManager().GetPlayerCount();
-		int playerCountMax = GetGame().GetServerInfo().GetPlayerLimit();
-			
+		int playerCountOnline = GetGame().GetPlayerManager().GetPlayerCount();
+
+		int playerCountMax = 1;
+		if (GetGame().GetServerInfo()) {
+			playerCountMax = GetGame().GetServerInfo().GetPlayerLimit();
+		}
+
 		//
 		int playerCountOnlineXbox = 0;
 		int playerCountOnlinePS = 0;
 		int playerCountOnlinePC = 0;
-		array<int> players = new array<int>;		
+		array<int> players = {};
 		GetGame().GetPlayerManager().GetPlayers(players);
-		foreach (int playerId: players)
+		foreach (int playerId : players)
 		{
 			PlatformKind platform = GetGame().GetPlayerManager().GetPlatformKind(playerId);
 			switch (platform)
@@ -82,8 +87,7 @@ class AS_ServerDataCollectorService
 				}
 			}
 		}
-		
-		
+
 		//
 		AS_ServerStatistics serverStatistics = new AS_ServerStatistics();
 		serverStatistics.SetNumberOfPlayersOnline(playerCountOnline);
